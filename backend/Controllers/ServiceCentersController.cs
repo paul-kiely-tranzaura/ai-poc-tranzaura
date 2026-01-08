@@ -1,0 +1,21 @@
+using FleetManagement.Repositories;
+using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
+
+namespace FleetManagement.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public class ServiceCentersController : ControllerBase
+    {
+        private readonly IFleetRepository _repo;
+        public ServiceCentersController(IFleetRepository repo) => _repo = repo;
+
+        [HttpGet]
+        public async Task<IActionResult> Get()
+        {
+            var items = await _repo.GetServiceCentersAsync();
+            return Ok(items);
+        }
+    }
+}

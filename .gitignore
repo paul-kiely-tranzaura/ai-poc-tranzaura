@@ -1,3 +1,21 @@
+# Visual Studio
+.vs/
+*.user
+*.suo
+
+# Build outputs
+/backend/bin/
+/backend/obj/
+/frontend/dist/
+
+# Node
+/frontend/node_modules/
+
+# Logs
+*.log
+
+# IDE
+.idea/
 frontend/node_modules/
 frontend/dist/
 frontend/package-lock.json
