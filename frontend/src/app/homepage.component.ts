@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, FormGroup, Validators } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -315,6 +315,19 @@ export class HomepageComponent implements OnInit {
   selectYear(y: number): void {
     this.yearInput = String(y);
     this.form.controls['assetYear'].setValue(String(y));
+    this.showYearList = false;
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: Event): void {
+    const target = event.target as HTMLElement | null;
+    if (!target) return;
+    // If the click is inside any select wrapper, do nothing (keeps its list open)
+    if (target.closest && target.closest('.select-wrapper')) return;
+    // Otherwise close all open dropdown lists
+    this.showAssetTypeList = false;
+    this.showCenterList = false;
+    this.showMakeList = false;
     this.showYearList = false;
   }
 }
