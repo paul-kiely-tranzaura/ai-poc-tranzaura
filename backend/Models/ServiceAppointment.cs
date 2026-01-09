@@ -8,6 +8,8 @@ namespace FleetManagement.Models
         public int AssetTypeId { get; set; }
         public int ServiceCenterId { get; set; }
         public DateTime AppointmentDate { get; set; }
+        public int? AssetYear { get; set; }
+        public string? AssetMake { get; set; }
         public string Notes { get; set; } = string.Empty;
     }
 }
