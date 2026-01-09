@@ -51,6 +51,35 @@ namespace FleetManagement.Data
                 );
             }
 
+            // Ensure ServiceAppointments table exists (for environments without migrations)
+            try
+            {
+                var conn = context.Database.GetDbConnection();
+                conn.Open();
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"IF OBJECT_ID(N'[dbo].[ServiceAppointments]', 'U') IS NULL
+BEGIN
+    CREATE TABLE [dbo].[ServiceAppointments](
+        [Id] INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        [AssetTypeId] INT NOT NULL,
+        [ServiceCenterId] INT NOT NULL,
+        [AppointmentDate] DATETIME2 NOT NULL,
+        [AssetYear] INT NULL,
+        [AssetMake] NVARCHAR(200) NULL,
+        [Notes] NVARCHAR(MAX) NOT NULL
+    )
+END";
+                    cmd.ExecuteNonQuery();
+                }
+                conn.Close();
+            }
+            catch
+            {
+                // If raw SQL execution isn't supported by the provider or fails,
+                // ignore and allow EF Migrations to handle schema management.
+            }
+
             context.SaveChanges();
         }
     }

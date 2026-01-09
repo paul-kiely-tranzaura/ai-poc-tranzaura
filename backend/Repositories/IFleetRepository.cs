@@ -8,5 +8,9 @@ namespace FleetManagement.Repositories
     {
         Task<IEnumerable<AssetType>> GetAssetTypesAsync();
         Task<IEnumerable<ServiceCenter>> GetServiceCentersAsync();
+        Task<IEnumerable<ServiceAppointment>> GetAppointmentsAsync();
+        Task<ServiceAppointment> AddAppointmentAsync(ServiceAppointment appointment);
+        Task<ServiceAppointment?> UpdateAppointmentAsync(ServiceAppointment appointment);
+        Task<bool> DeleteAppointmentAsync(int id);
     }
 }

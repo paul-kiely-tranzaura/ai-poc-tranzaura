@@ -27,7 +27,24 @@ export class FleetService {
     );
   }
 
+  getAppointments(): Observable<any[]> {
+    return this.http.get<any[]>(`${API_BASE}/ServiceAppointments`).pipe(
+      catchError((err) => {
+        console.error('Failed to load appointments', err);
+        return of([] as any[]);
+      })
+    );
+  }
+
   createAppointment(payload: any) {
     return this.http.post(`${API_BASE}/ServiceAppointments`, payload);
+  }
+
+  updateAppointment(id: number, payload: any) {
+    return this.http.put(`${API_BASE}/ServiceAppointments/${id}`, payload);
+  }
+
+  deleteAppointment(id: number) {
+    return this.http.delete(`${API_BASE}/ServiceAppointments/${id}`);
   }
 }

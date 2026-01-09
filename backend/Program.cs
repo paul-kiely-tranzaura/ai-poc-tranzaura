@@ -7,13 +7,25 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddEnvironmentVariables();
 
 // Configure DB
-if (builder.Environment.IsDevelopment())
+// Prefer an explicitly configured FleetDatabase connection string (or FLEET_CONNECTION_STRING env var)
+// so the app can connect to an existing SQL Server instance even in Development.
+var configuredConnection = builder.Configuration.GetConnectionString("FleetDatabase") ??
+                          Environment.GetEnvironmentVariable("FLEET_CONNECTION_STRING");
+
+if (!string.IsNullOrEmpty(configuredConnection))
 {
-    // Use in-memory DB for local development to avoid needing a full SQL Server instance
-    builder.Services.AddDbContext<FleetDbContext>(options => options.UseInMemoryDatabase("DevFleetDb"));
+    builder.Services.AddDbContext<FleetDbContext>(options => options.UseSqlServer(configuredConnection));
+}
+else if (builder.Environment.IsDevelopment())
+{
+    // No configured SQL connection for local dev — use a file-backed SQLite DB
+    // so data persists across restarts during development.
+    var sqliteConnection = "Data Source=fleet.db";
+    builder.Services.AddDbContext<FleetDbContext>(options => options.UseSqlite(sqliteConnection));
 }
 else
 {
+    // Production / non-development fallback: attempt local SQL Server instance by default.
     var connectionString = builder.Configuration.GetConnectionString("FleetDatabase") ??
                            Environment.GetEnvironmentVariable("FLEET_CONNECTION_STRING") ??
                            "Server=localhost\\MSSQLSERVER01;Database=FleetDb;Trusted_Connection=True;TrustServerCertificate=True;";
@@ -35,18 +47,25 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Seed DB
-using (var scope = app.Services.CreateScope())
+// Seed DB for in-memory or when explicitly requested.
+// If a configured SQL connection is provided, assume the database already
+// exists and contains data; skip the seeding/migration step to avoid
+// attempting schema changes against a production DB at startup.
+var skipSeeding = !string.IsNullOrEmpty(configuredConnection);
+if (!skipSeeding)
 {
-    var services = scope.ServiceProvider;
-    try
+    using (var scope = app.Services.CreateScope())
     {
-        SeedData.Initialize(services);
-    }
-    catch (Exception ex)
-    {
-        var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "An error occurred seeding the DB.");
+        var services = scope.ServiceProvider;
+        try
+        {
+            SeedData.Initialize(services);
+        }
+        catch (Exception ex)
+        {
+            var logger = services.GetRequiredService<ILogger<Program>>();
+            logger.LogError(ex, "An error occurred seeding the DB.");
+        }
     }
 }
 

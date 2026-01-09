@@ -1,34 +1,16 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, FormGroup, Validators } from '@angular/forms';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatNativeDateModule } from '@angular/material/core';
+import { RouterModule } from '@angular/router';
 import { FleetService } from './fleet.service';
 import { AssetType } from './models/asset-type';
 import { ServiceCenter } from './models/service-center';
 
 @Component({
-  selector: 'app-root',
+  selector: 'app-homepage',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MatDatepickerModule, MatFormFieldModule, MatInputModule, MatSelectModule, MatNativeDateModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule],
   template: `
-  <a class="skip-link" href="#main">Skip to content</a>
-  <header class="site-header" role="banner">
-    <div class="site-header-inner">
-      <div class="brand">
-        <a href="#" class="brand-link">Fleet<span class="brand-accent">Hub</span></a>
-      </div>
-      <nav class="site-nav" role="navigation" aria-label="Main navigation">
-        <a class="nav-link" href="#">Home</a>
-        <a class="nav-link" href="#appointments">Appointments</a>
-        <a class="nav-link" href="#docs">Docs</a>
-      </nav>
-    </div>
-  </header>
-
   <main id="main" class="homepage-root" role="main">
     <div class="hero" aria-hidden="false">
       <div class="hero-inner">
@@ -44,33 +26,52 @@ import { ServiceCenter } from './models/service-center';
       <form [formGroup]="form" (ngSubmit)="submit()" class="form-grid" aria-describedby="form-desc">
         <div id="form-desc" class="sr-only">Choose an asset type, service center and date to schedule a maintenance appointment.</div>
 
-        <mat-form-field appearance="outline" class="field">
-          <mat-label>Asset Type</mat-label>
-          <select matNativeControl formControlName="assetTypeId" required class="select-input" aria-label="Asset Type">
+        <div class="field">
+          <label class="input-label">Asset Type</label>
+          <select formControlName="assetTypeId" required class="select-input" aria-label="Asset Type">
             <option value="">Select asset</option>
             <option *ngFor="let a of assetTypes" [value]="a.id">{{a.name}}</option>
           </select>
-        </mat-form-field>
+        </div>
 
-        <mat-form-field appearance="outline" class="field">
-          <mat-label>Service Center</mat-label>
-          <select matNativeControl formControlName="serviceCenterId" required class="select-input" aria-label="Service Center">
+        <div class="field">
+          <label class="input-label">Asset Make</label>
+          <select formControlName="assetMake" class="select-input" aria-label="Asset Make">
+            <option value="">Select make</option>
+            <option *ngFor="let m of assetMakes" [value]="m">{{ m }}</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="input-label">Service Center</label>
+          <select formControlName="serviceCenterId" required class="select-input" aria-label="Service Center">
             <option value="">Select center</option>
             <option *ngFor="let s of centers" [value]="s.id">{{s.name}} — {{s.city}}</option>
           </select>
-        </mat-form-field>
+        </div>
 
-        <mat-form-field appearance="outline" class="field full-width">
-          <mat-label>Appointment Date & Time</mat-label>
-          <input matInput [matDatepicker]="picker" formControlName="appointmentDateTime" placeholder="Choose a date and time" class="date-input" aria-label="Appointment Date and Time">
-          <mat-datepicker-toggle matSuffix [for]="picker" aria-label="Toggle datepicker"></mat-datepicker-toggle>
-          <mat-datepicker #picker></mat-datepicker>
-        </mat-form-field>
+        <div class="field">
+          <label class="input-label">Asset Year</label>
+          <select formControlName="assetYear" class="select-input" aria-label="Asset Year">
+            <option value="">Select year</option>
+            <option *ngFor="let y of assetYears" [value]="y">{{ y }}</option>
+          </select>
+        </div>
 
-        <mat-form-field appearance="outline" class="field full-width">
-          <mat-label>Notes (optional)</mat-label>
-          <input matInput formControlName="notes" placeholder="Add details about the appointment" aria-label="Notes">
-        </mat-form-field>
+        <div class="field">
+          <label class="input-label">Appointment Date</label>
+          <input type="date" formControlName="appointmentDate" class="date-input" aria-label="Appointment Date">
+        </div>
+
+        <div class="field">
+          <label class="input-label">Appointment Time</label>
+          <input type="time" formControlName="appointmentTime" class="date-input" aria-label="Appointment Time">
+        </div>
+
+        <div class="field full-width">
+          <label class="input-label">Notes (optional)</label>
+          <textarea formControlName="notes" class="date-input" rows="3" placeholder="Add details about the appointment" aria-label="Notes"></textarea>
+        </div>
 
         <div class="actions">
           <button type="submit" class="btn-primary" [disabled]="form.invalid" [attr.aria-disabled]="form.invalid">Save Appointment</button>
@@ -79,33 +80,49 @@ import { ServiceCenter } from './models/service-center';
 
       <p *ngIf="saved" class="success" role="status" aria-live="polite">Appointment saved successfully!</p>
     </section>
-  </main>
 
-  <footer class="site-footer" role="contentinfo">
-    <div class="site-footer-inner">
-      <p>© {{ year }} FleetHub — Built with care.</p>
-    </div>
-  </footer>
+    <!-- Appointments moved to its own route -->
+  </main>
   `
 })
 export class HomepageComponent implements OnInit {
   form: FormGroup;
   assetTypes: AssetType[] = [];
   centers: ServiceCenter[] = [];
+  assetYears: number[] = [];
+  assetMakes: string[] = [];
+  appointments: any[] = [];
   saved = false;
   year = new Date().getFullYear();
 
   constructor(private fb: FormBuilder, private fleet: FleetService) {
     this.form = this.fb.group({
       assetTypeId: ['', Validators.required],
+      assetMake: [''],
       serviceCenterId: ['', Validators.required],
-      appointmentDateTime: [null, Validators.required],
+      assetYear: [''],
+      appointmentDate: [null, Validators.required],
+      appointmentTime: [null, Validators.required],
       notes: ['']
     });
+    // populate years 1970..2026
+    const start = 1970;
+    const end = 2026;
+    for (let y = start; y <= end; y++) this.assetYears.push(y);
+    // common truck manufacturers
+    this.assetMakes = [
+      'Ford', 'Chevrolet', 'Toyota', 'Volvo', 'Mercedes-Benz',
+      'Freightliner', 'Peterbilt', 'Kenworth', 'Isuzu', 'Scania'
+    ];
   }
 
   ngOnInit(): void {
     this.loadLookups();
+    this.loadAppointments();
+  }
+
+  loadAppointments(): void {
+    this.fleet.getAppointments().subscribe(a => (this.appointments = a || []));
   }
 
   private loadLookups(): void {
@@ -134,13 +151,17 @@ export class HomepageComponent implements OnInit {
   submit(): void {
     if (this.form.invalid) return;
     const raw = this.form.value as any;
-    const appointmentDate = raw.appointmentDateTime instanceof Date ? raw.appointmentDateTime : new Date(raw.appointmentDateTime);
-    const payload = {
+    const datePart = raw.appointmentDate; // 'YYYY-MM-DD'
+    const timePart = raw.appointmentTime || '00:00'; // 'HH:mm'
+    const combined = new Date(`${datePart}T${timePart}`);
+    const payload: any = {
       assetTypeId: Number(raw.assetTypeId),
       serviceCenterId: Number(raw.serviceCenterId),
-      appointmentDateTime: appointmentDate.toISOString(),
+      appointmentDate: combined.toISOString(),
       notes: raw.notes
     };
+    if (raw.assetYear) payload.assetYear = Number(raw.assetYear);
+    if (raw.assetMake) payload.assetMake = raw.assetMake;
 
     this.fleet.createAppointment(payload).subscribe(() => {
       this.saved = true;
