@@ -14,13 +14,14 @@
 # Logs
 *.log
 
+# Database files
+backend/*.db
+backend/*.db-shm
+backend/*.db-wal
+
 # IDE
 .idea/
-frontend/node_modules/
-frontend/dist/
-frontend/package-lock.json
+frontend/.angular/
 frontend/test-results/
 frontend/playwright-run.log
-frontend/.angular/
 frontend/package-lock.json
-frontend/playwright-run.log
